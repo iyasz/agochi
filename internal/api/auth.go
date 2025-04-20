@@ -5,7 +5,7 @@ import (
 	"github.com/iyasz/JWT-RefreshToken-Go/internal/handlers"
 )
 
-func AuthRoutes(r *chi.Mux, authHandler handlers.AuthHandler) {
+func AuthRoutes(r chi.Router, authHandler handlers.AuthHandler) {
 
 	r.Route("/auth", func(r chi.Router) {
 		r.Get("/greeting", authHandler.Greeting)

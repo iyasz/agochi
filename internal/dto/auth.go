@@ -16,7 +16,7 @@ type RegisterRequest struct {
 	Username string `json:"username" validate:"required,max=250"`
 	Email    string `json:"email" validate:"required,email,max=250"`
 	Password string `json:"password" validate:"required,max=250"`
-	Role     string `json:"role" validate:"required"`
+	Role     string `json:"role"`
 }
 
 type RegisterResponse struct {

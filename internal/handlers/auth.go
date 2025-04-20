@@ -50,8 +50,9 @@ func (ah *authHandler) Login(w http.ResponseWriter, r *http.Request) {
 }
 
 func (ah *authHandler) Register(w http.ResponseWriter, r *http.Request){
-	ctx, cancel := context.WithTimeout(r.Context(), 7*time.Second)
+	ctx, cancel := context.WithTimeout(r.Context(), 3*time.Second)
 	defer cancel()
+
 
 	var req dto.RegisterRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
@@ -59,19 +60,32 @@ func (ah *authHandler) Register(w http.ResponseWriter, r *http.Request){
 		return
 	}
 
+	if validate := utils.Validate(req); len(validate) > 0 {
+		helpers.NewResponse(w, http.StatusBadRequest, "Validation Error", "", validate)
+		return
+	}
+
+	if ok := utils.NoSpace(req.Username); !ok {
+		helpers.NewResponse(w, http.StatusBadRequest, "Validation Error", "", "username cannot contain spaces")
+		return
+	}
+
+	if ok := utils.NoSpace(req.Password); !ok {
+		helpers.NewResponse(w, http.StatusBadRequest, "Validation Error", "", "password cannot contain spaces")
+		return
+	}
+
 	res, err := ah.authService.Register(ctx, req);
 
 	if err != nil {
 		if httpErr, ok := err.(*helpers.HttpError); ok {
-			http.Error(w, httpErr.Message, httpErr.StatusCode)
+			helpers.NewResponse(w, httpErr.StatusCode, "Validation Error", "", httpErr.Message)
 			return
 		}
 
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		helpers.NewResponse(w, http.StatusInternalServerError, "Internal Server Error", "	", err.Error())
 		return
 	}
 
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(res)
-}
+	helpers.NewResponse(w, http.StatusOK, "Data Successfully Created", res, nil)
+}		

@@ -30,7 +30,9 @@ func main() {
 	r := chi.NewRouter()
 
 	// Setup Routes 
-	api.AuthRoutes(r, authHandler)
+	r.Route("/api", func(r chi.Router) {
+		api.AuthRoutes(r, authHandler)
+	})
 
 	
 	log.Println("server running on http://" + cf.Server.Host + ":" + cf.Server.Port)
