@@ -49,5 +49,5 @@ func (ar *authRepository) FindByEmail(ctx context.Context, email string) error {
 		return err
 	}
 
-	return helpers.New("email already exists", http.StatusConflict)
+	return helpers.New("", "email already exists", http.StatusConflict)
 }

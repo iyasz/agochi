@@ -3,6 +3,7 @@ package handlers
 import (
 	"context"
 	"encoding/json"
+	"log"
 	"net/http"
 	"time"
 
@@ -61,31 +62,37 @@ func (ah *authHandler) Register(w http.ResponseWriter, r *http.Request){
 	}
 
 	if validate := utils.Validate(req); len(validate) > 0 {
-		helpers.NewResponse(w, http.StatusBadRequest, "Validation Error", "", validate)
+		helpers.NewErrorResponse(w, http.StatusUnprocessableEntity, "Validation Error", "", validate)
 		return
 	}
 
 	if ok := utils.NoSpace(req.Username); !ok {
-		helpers.NewResponse(w, http.StatusBadRequest, "Validation Error", "", "username cannot contain spaces")
+		helpers.NewErrorResponse(w, http.StatusUnprocessableEntity, "Validation Error", "", map[string]string{"username": "username cannot contain spaces"})
 		return
 	}
 
 	if ok := utils.NoSpace(req.Password); !ok {
-		helpers.NewResponse(w, http.StatusBadRequest, "Validation Error", "", "password cannot contain spaces")
-		return
+		helpers.NewErrorResponse(w, http.StatusUnprocessableEntity, "Validation Error", "", map[string]string{"password": "password cannot contain spaces"})
+		return	
 	}
 
 	res, err := ah.authService.Register(ctx, req);
 
 	if err != nil {
 		if httpErr, ok := err.(*helpers.HttpError); ok {
-			helpers.NewResponse(w, httpErr.StatusCode, "Validation Error", "", httpErr.Message)
+			if httpErr.Field != "" {
+				helpers.NewErrorResponse(w, httpErr.StatusCode, "Validation Error", "", map[string]string{httpErr.Field: httpErr.Message})
+				return
+			}
+
+			helpers.NewErrorResponse(w, httpErr.StatusCode, httpErr.Message, "", nil)
 			return
 		}
 
-		helpers.NewResponse(w, http.StatusInternalServerError, "Internal Server Error", "	", err.Error())
+		log.Println(err.Error())
+		helpers.NewErrorResponse(w, http.StatusInternalServerError, "Internal Server Error", "", nil)
 		return
 	}
 
-	helpers.NewResponse(w, http.StatusOK, "Data Successfully Created", res, nil)
+	helpers.NewSuccessResponse(w, http.StatusOK, "Resource has been successfully created.", res, nil)
 }		

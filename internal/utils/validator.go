@@ -13,12 +13,12 @@ func NoSpace(f string) bool {
 
 func Validate[T any](data T) map[string]string {
 	err := validator.New().Struct(data)
-	res := map[string]string{}
+	res := make(map[string]string)
 
 	if err != nil {
 		for _, v := range err.(validator.ValidationErrors) {
-			filed := strings.ToLower(v.StructField())
-			res[filed] = translateError(v)
+			field := strings.ToLower(v.StructField())
+			res[field] = translateError(v)
 		}
 	}
 

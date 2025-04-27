@@ -5,20 +5,42 @@ import (
 	"net/http"
 )
 
-type Response[T any] struct {
-	StatusCode int    `json:"code"`
-	Message    string `json:"message"`
-	Data       T      `json:"data,omitempty"`
-	Error      any    `json:"errors,omitempty"`
+type SuccessResponse[T any] struct {
+	Status  int    `json:"status"`
+	Success bool   `json:"success"`
+	Message string `json:"message"`
+	Data    T      `json:"data,omitempty"`
+}
+
+type ErrorResponse struct {
+	Status    int    `json:"status"`
+	Success   bool   `json:"success"`
+	Message   string `json:"message"`
+	ErrorType string `json:"error_type,omitempty"`
+	Errors    any    `json:"errors,omitempty"`
 }
 
 // New Response Maker
-func NewResponse[T any](w http.ResponseWriter, statusCode int, msg string, data T, errors any) {
-	res := Response[T]{
-		StatusCode: statusCode,
-		Message:    msg,
-		Data:       data,
-		Error:      errors,
+func NewSuccessResponse[T any](w http.ResponseWriter, statusCode int, msg string, data T, errors any) {
+	res := SuccessResponse[T]{
+		Status:  statusCode,
+		Success: true,
+		Message: msg,
+		Data:    data,
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(statusCode)
+	json.NewEncoder(w).Encode(res)
+}
+
+func NewErrorResponse(w http.ResponseWriter, statusCode int, msg string, error_type string, errors any) {
+	res := ErrorResponse{
+		Status:    statusCode,
+		Success:   false,
+		Message:   msg,
+		ErrorType: error_type,
+		Errors:    errors,
 	}
 
 	w.Header().Set("Content-Type", "application/json")

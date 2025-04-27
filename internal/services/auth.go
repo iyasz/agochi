@@ -34,30 +34,30 @@ func (as *authService) Register(ctx context.Context, req dto.RegisterRequest) (d
 	res, err := as.repo.FindByUsername(ctx, req.Username)
 	if err != nil{
 		if errors.Is(err, context.DeadlineExceeded) || errors.Is(err, context.Canceled) {
-			return dto.RegisterResponse{}, helpers.New(err.Error(), http.StatusRequestTimeout)
+			return dto.RegisterResponse{}, helpers.New("", err.Error(), http.StatusRequestTimeout)
 		}
 
-		return dto.RegisterResponse{}, helpers.New(err.Error(), http.StatusInternalServerError)
+		return dto.RegisterResponse{}, helpers.New("", err.Error(), http.StatusInternalServerError)
 	}
 
 	if res != nil {
-		return dto.RegisterResponse{}, helpers.New("username already exists", http.StatusConflict)
+		return dto.RegisterResponse{}, helpers.New("username", "username already exists", http.StatusConflict)
 	}
 
 	// Tipe 2 
 	if err := as.repo.FindByEmail(ctx, req.Email); err != nil{
 		if errors.Is(err, context.DeadlineExceeded) || errors.Is(err, context.Canceled) {
-			return dto.RegisterResponse{}, helpers.New(err.Error(), http.StatusRequestTimeout)
+			return dto.RegisterResponse{}, helpers.New("", err.Error(), http.StatusRequestTimeout)
 		}
 
 		var httpErr *helpers.HttpError
 		if errors.As(err, &httpErr) {
 			if httpErr.StatusCode == http.StatusConflict {
-				return dto.RegisterResponse{}, helpers.New(httpErr.Message, httpErr.StatusCode)
+				return dto.RegisterResponse{}, helpers.New("email", httpErr.Message, httpErr.StatusCode)
 			}
 		}
 
-		return dto.RegisterResponse{}, helpers.New(err.Error(), http.StatusInternalServerError)
+		return dto.RegisterResponse{}, helpers.New("", err.Error(), http.StatusInternalServerError)
 	}
 
 	user := &models.User{
@@ -69,7 +69,7 @@ func (as *authService) Register(ctx context.Context, req dto.RegisterRequest) (d
 	}
 
 	if err := as.repo.Save(ctx, user); err != nil {
-		return dto.RegisterResponse{}, helpers.New(err.Error(), http.StatusInternalServerError)
+		return dto.RegisterResponse{}, helpers.New("", err.Error(), http.StatusInternalServerError)
 	}
 
 	return dto.RegisterResponse{
