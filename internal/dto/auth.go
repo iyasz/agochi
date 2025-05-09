@@ -1,14 +1,24 @@
 package dto
 
-import "github.com/iyasz/JWT-RefreshToken-Go/internal/models"
+import (
+	"github.com/iyasz/JWT-RefreshToken-Go/internal/models"
+)
 
 type LoginRequest struct {
-	Email    string `json:"email" validate:"required,email,max=250"`
-	Password string `json:"password" validate:"required,max=250"`
+	Username string `json:"username" validate:"required"`
+	Password string `json:"password" validate:"required"`
+}
+
+type AuthTokenResponse struct {
+	AccessToken           string `json:"access_token"`
+	RefreshToken          string `json:"refresh_token"`
+	ExpiresRefreshTokenAt int    `json:"expires_refresh_token_at"`
+	ExpiresAccessTokenAt  int    `json:"expires_access_token_at"`
 }
 
 type LoginResponse struct {
-	AccessToken string `json:"access_token"`
+	AccessToken          string `json:"access_token"`
+	ExpiresAccessTokenAt int    `json:"expires_access_token_at"`
 }
 
 type RegisterRequest struct {
@@ -22,4 +32,3 @@ type RegisterRequest struct {
 type RegisterResponse struct {
 	User *models.User `json:"user"`
 }
-
